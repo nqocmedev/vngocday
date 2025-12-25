@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Gift Christmas - Nhận Quà Giáng Sinh Đặc Biệt</title>
+    <!-- Routing: Nếu không có ID trong URL, redirect sang create.html -->
+    <script>
+        // Chạy ngay lập tức, không đợi DOM
+        (function() {
+            try {
+                // Lấy ID từ URL hash (#id=xxx) hoặc query string (?id=xxx)
+                function getGiftIdFromUrl() {
+                    // Kiểm tra hash trước (#id=xxx)
+                    const hash = window.location.hash;
+                    if (hash && hash.startsWith('#id=')) {
+                        const id = hash.substring(4).trim();
+                        if (id && id !== '') {
+                            return id;
+                        }
+                    }
+                    // Kiểm tra query string (?id=xxx)
+                    const params = new URLSearchParams(window.location.search);
+                    const idFromQuery = params.get('id');
+                    if (idFromQuery && idFromQuery.trim() !== '') {
+                        return idFromQuery.trim();
+                    }
+                    return null;
+                }
+                
+                // Nếu không có ID, redirect sang create.html
+                const giftId = getGiftIdFromUrl();
+                if (!giftId) {
+                    // Tính toán đường dẫn create.html
+                    const currentPath = window.location.pathname;
+                    let createPath;
+                    
+                    if (currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/index.html')) {
+                        // Ở root, dùng đường dẫn tương đối
+                        createPath = 'create/create.html';
+                    } else {
+                        // Ở thư mục khác, dùng đường dẫn tương đối
+                        createPath = './create/create.html';
+                    }
+                    
+                    // Dùng replace để tránh back button và đảm bảo redirect ngay
+                    window.location.replace(createPath);
+                    // Dừng execution ngay lập tức
+                    throw new Error('Redirecting...');
+                }
+            } catch (e) {
+                // Nếu là redirect, không log error
+                if (e.message !== 'Redirecting...') {
+                    console.error('Routing error:', e);
+                }
+            }
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <meta name="description" content="Nhận quà Giáng sinh đặc biệt với lời chúc ấm áp từ người thân yêu. Trải nghiệm tuyệt vời với animation đẹp mắt và nhạc nền lãng mạn.">
+    <meta name="keywords" content="quà giáng sinh, christmas gift, lời chúc giáng sinh, merry christmas, quà tặng online">
+    <meta name="author" content="Gift Christmas">
+    
+    <!-- Open Graph - Facebook & Zalo -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://giftchristmas.onrender.com/">
+    <meta property="og:title" content="Gift Christmas - Nhận Quà Giáng Sinh Đặc Biệt">
+    <meta property="og:description" content="Nhận quà Giáng sinh đặc biệt với lời chúc ấm áp từ người thân yêu. Trải nghiệm tuyệt vời với animation đẹp mắt và nhạc nền lãng mạn.">
+    <meta property="og:image" content="https://giftchristmas.onrender.com/assets/images/background1.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:site_name" content="Gift Christmas">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://giftchristmas.onrender.com/">
+    
+    <link rel="preload" as="image" href="assets/images/background1.jpg">
+    <link rel="stylesheet" href="style.css">
+     <!-- Chặn DevTools -->
+     <script src="./detect-devtools.js"></script>
+     <script type='text/javascript'>
+         // Bypass for developers
+         const keyName = 'key';
+         const keyValue = '9ac7ec230e0e4513578f309d6d3579ad';
+ 
+         // Handle via config
+         DisableDevtool({
+             tkName: keyName,
+             md5: keyValue,
+             interval: '100',
+         });
+     </script>
+</head>
+<body>
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="start-overlay">
+        <div class="start-overlay-content">
+            <img src="assets/images/santa_notify.png" alt="Santa" class="santa-notify-icon">
+            <h1 class="start-title">🎄 Ông già Noel đang phát quà rồi! 🎄</h1>
+            <p class="start-message">Bạn đã sẵn sàng để nhận món quà đặc biệt chưa?</p>
+            <button id="start-button" class="start-button">Sẵn sàng</button>
+        </div>
+    </div>
+
+    <!-- Orientation Lock Message (for mobile) -->
+    <div id="orientation-lock" class="orientation-lock">
+        <div class="orientation-message">
+            <img src="assets/images/rotate.png" alt="Rotate" class="rotate-icon">
+            <p>Vui lòng bật xoay ngang màn hình nhé người đẹp</p>
+        </div>
+    </div>
+
+
+    <!-- Background Video -->
+    <video id="backgroundVideo" class="background-video" muted playsinline preload="auto" style="display: none;" oncontextmenu="return false;" controlslist="nodownload nofullscreen noremoteplayback">
+        <source src="assets/images/intro.mp4" type="video/mp4">
+    </video>
+
+    <!-- Main Canvas for Text Animation -->
+    <canvas class="canvas" style="display: none;"></canvas>
+
+
+    <!-- Music Control -->
+    <div id="musicControl" class="music-control" title="Play Music" style="display: none;">▶</div>
+    <audio id="christmasAudio" loop>
+        <!-- Source sẽ được set động từ giftData hoặc để trống -->
+    </audio>
+
+    <!-- Settings Script (define before index.js) -->
+    <script>
+        // Default settings - bạn có thể thay đổi các giá trị này
+        const settings = {
+            countdown: 10,
+            sequence: "Chúc mừng giáng sinh!|🎉🎂🎁|Merry Christmas!|#gift",
+            sequenceColor: "#ffffff",
+            recipientName: "bé yêu" // Tên người nhận quà
+        };
+        window.settings = settings;
+
+    </script>
+
+    <!-- Load GiftChristmas API helper -->
+    <script type="module">
+        import { getGiftIdFromUrl, getGiftChristmasById } from './api/gift-christmas.js';
+        
+        // Lưu functions vào window để dùng trong index.js
+        window.getGiftIdFromUrl = getGiftIdFromUrl;
+        window.getGiftChristmasById = getGiftChristmasById;
+        
+        // Fetch GiftChristmas data nếu có ID trong URL
+        async function initGiftChristmas() {
+            const giftId = getGiftIdFromUrl();
+            if (giftId) {
+                try {
+                    const giftData = await getGiftChristmasById(giftId);
+                    
+                    // Lưu vào window để dùng ở các trang khác
+                    window.giftChristmasData = giftData;
+                    
+                    // Setup nhạc nền nếu có
+                    setupBackgroundMusic(giftData);
+                } catch (error) {
+                    console.error('❌ Error loading GiftChristmas:', error);
+                    // Vẫn tiếp tục với flow bình thường nếu không load được
+                }
+            }
+        }
+        
+        // Setup nhạc nền từ đầu (phát từ intro video)
+        function setupBackgroundMusic(giftData) {
+            if (!giftData.musicType || !giftData.musicFile) {
+                return;
+            }
+            
+            const christmasAudio = document.getElementById('christmasAudio');
+            if (!christmasAudio) {
+                console.warn('⚠️ Audio element not found');
+                return;
+            }
+            
+            let musicUrl = '';
+            
+            if (giftData.musicType === 'sample') {
+                // Nhạc mẫu từ assets/musics/
+                musicUrl = `assets/musics/${giftData.musicFile}`;
+            } else if (giftData.musicType === 'file') {
+                // Nhạc upload từ URL
+                musicUrl = giftData.musicFile;
+            }
+            
+            if (musicUrl) {
+                // Thay đổi source của audio element
+                christmasAudio.innerHTML = `<source src="${musicUrl}" type="audio/mpeg">`;
+                christmasAudio.load();
+                
+                // KHÔNG tự động phát nhạc - đợi click "Sẵn sàng"
+                // Nhạc sẽ được phát khi click button "Sẵn sàng" trong readyOverlayBtn handler
+                
+                console.log('🎵 Background music setup:', musicUrl);
+            }
+        }
+        
+        // Gọi init khi DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGiftChristmas);
+        } else {
+            initGiftChristmas();
+        }
+    </script>
+
+    <!-- Main JavaScript -->
+    <script src="index.js"></script>
+</body>
+</html>
+
